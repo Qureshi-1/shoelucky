@@ -288,9 +288,17 @@
     var me = state.me || { user: { name: 'Member' }, spinAvailable: false, scratchLeft: 0 };
     var name = (me.user.name || 'Member').split(' ')[0];
     var shop = me.user.shop ? me.user.shop.name : 'ShoeLucky Club';
+    var profilePic = me.user.photo || '/assets/images/default-profile.png';
     return '<div class="screen home-screen">' +
       '<div class="topbar d-flex align-items-center">' + logo(true) + '<div class="flex-fill"></div>' +
         '<button class="icon-btn" data-act="account">' + icon('user', 18) + '</button></div>' +
+      '<div class="profile-section">' +
+        '<div class="profile-avatar"><img src="' + profilePic + '" alt="User"></div>' +
+        '<div class="profile-info">' +
+          '<h4>' + esc(me.user.name || 'Member') + '</h4>' +
+          '<p>' + esc(me.user.shop ? me.user.shop.name : 'ShoeLucky Club') + '</p>' +
+        '</div>' +
+      '</div>' +
       '<div class="member-card">' +
         '<div class="member-card__top"><span>ShoeLucky Club</span><span class="member-tier">' +
           icon('check', 11) + ' Member</span></div>' +
@@ -313,14 +321,14 @@
         '<button class="game-card game-card--scratch" data-go="/scratch"' + (me.scratchLeft > 0 ? '' : ' disabled') + '>' +
           '<span class="game-card__icon">' + icon('gift', 23) + '</span>' +
           '<span><strong>Scratch card</strong><small>' +
-          (me.scratchLeft > 0 ? me.scratchLeft + ' welcome card' + (me.scratchLeft > 1 ? 's' : '') + ' left' : 'All welcome cards used') +
+          (me.scratchLeft > 0 ? me.scratchLeft + ' card' + (me.scratchLeft > 1 ? 's' : '') + ' left' : 'Weekly card finished. Come back next week.') +
           '</small></span><span class="game-card__arrow">' + icon('arrow', 18) + '</span></button>' +
       '</div>' +
       '<button class="wallet-strip" data-go="/coupons">' + icon('ticket', 18) +
         '<span><strong>My coupons</strong><small>View rewards and codes</small></span>' + icon('arrow', 16) + '</button>' +
       '<div class="info-card card">' +
         '<p class="eyebrow">How it works</p>' +
-        '<div class="rule"><span class="rule__num">1</span><span>New members receive 2 welcome scratch cards.</span></div>' +
+        '<div class="rule"><span class="rule__num">1</span><span>You get 1 scratch card per week.</span></div>' +
         '<div class="rule"><span class="rule__num">2</span><span>One spin per day, checked by mobile number and device.</span></div>' +
         '<div class="rule"><span class="rule__num">3</span><span>Coupons stay valid for 7 days.</span></div>' +
       '</div>' + bottomNav('home') + '</div>';
@@ -755,8 +763,6 @@
     var html = '';
     try {
       if (path === '/') html = landing();
-      else if (path === '/mobile') html = mobile();
-      else if (path === '/otp') html = '<div class="screen"><div class="card center"><p class="subtitle">Auth flow configured on server.</p></div></div>';
       else if (path === '/home') {
         if (!token) { go('/'); return; }
         state.me = await api('GET', '/customer/me');
@@ -823,7 +829,6 @@
     app.innerHTML = html;
     window.scrollTo(0, 0);
     if (path === '/') initGoogleSignIn();
-    if (path === '/otp') {}; // auth flow configured on server
     if (path === '/scratch') initScratch();
     if (path.indexOf('/win/') === 0 && document.querySelector('.coupon__top')) confetti();
     if (path === '/') {
