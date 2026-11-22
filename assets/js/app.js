@@ -68,6 +68,17 @@
   var adminToken = localStorage.getItem(ADMIN_KEY) || '';
   var device = getDevice();
 
+  // Backend origin for the static frontend (Vercel). Replace if your Render
+  // service has a different URL. On the backend host and localhost we stay
+  // same-origin so the app also works when served by server_flask.py.
+  var API_ORIGIN = 'https://shoelucky.onrender.com';
+  function apiBase() {
+    var host = location.hostname;
+    if (!host || host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') return '/api';
+    if (/\.onrender\.com$/i.test(host)) return '/api'; // backend serves the frontend
+    return API_ORIGIN.replace(/\/$/, '') + '/api';
+  }
+
   async function api(method, path, data, admin) {
     var headers = {};
     var t = admin ? adminToken : token;
@@ -75,12 +86,12 @@
     if (data !== undefined) headers['Content-Type'] = 'application/json';
     var res;
     try {
-      res = await fetch('/api' + path, {
+      res = await fetch(apiBase() + path, {
         method: method, headers: headers,
         body: data === undefined ? undefined : JSON.stringify(data)
       });
     } catch (e) {
-      throw new Error('Server se connect nahi ho paya. Backend chalayein: python3 server.py');
+      throw new Error('Server se connect nahi ho paya (' + apiBase() + '). Backend URL check karein.');
     }
     var out = {};
     try { out = await res.json(); } catch (e) {}
@@ -208,8 +219,15 @@
     });
   }
 
-/* OTP flow completely removed — Google sign-in only. */
-// OTP handling removed from customer UI
+  function shoeSvg() {
+    return '<svg class="hero__shoe" viewBox="0 0 260 140" aria-hidden="true">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4dfa4"/><stop offset=".55" stop-color="#c99b2b"/><stop offset="1" stop-color="#8a6614"/></linearGradient></defs>' +
+      '<path d="M20 104c16-2 27-9 36-23l14-22c4-6 10-8 16-5l24 11 27 16c13 7 26 9 42 10 18 2 31 8 39 19 5 7 2 12-7 12H27c-11 0-15-8-7-18Z" fill="url(#g)"/>' +
+      '<path d="M17 110h226c6 0 8 5 3 9-3 3-7 4-12 4H27c-9 0-14-5-14-9 0-3 1-4 4-4Z" fill="#f7f5ef"/>' +
+      '<path d="M88 70c8 9 12 19 13 30m-4-29c11 10 16 21 17 32m-4-30c12 10 18 21 19 33" stroke="#fff4d2" stroke-width="4" stroke-linecap="round" opacity=".8"/>' +
+      '</svg>';
+  }
+
   function confetti() {
     var layer = document.createElement('div'); layer.className = 'confetti';
     var colors = ['#c99b2b', '#f4e7c4', '#ffffff', '#9c7417'];
@@ -231,14 +249,15 @@
         esc(s.name) + ' · ' + esc(s.id) + '</option>';
     }).join('');
     var googleBlock = state.config.googleClientId
-      ? '<div class="google-signin" id="google-signin"></div><div class="or-line"><span>or</span></div>'
-      : '';
+      ? '<div class="google-signin" id="google-signin"></div>'
+      : '<div class="notice notice--quiet">' + icon('lock', 14) +
+        '<span>Sign-in is not configured on this server yet.</span></div>';
     return '<section class="hero">' + logo() +
       '<div class="hero__kicker">ShoeLucky Club · member rewards</div>' +
       '<h1>Play. Win.<span>Save big.</span></h1>' +
-      '<p>Your favourite shoe shop, now with a rewards counter. Spin once a day, scratch your welcome cards and redeem instant coupons at the counter.</p>' +
+      '<p>Your favourite shoe shop, now with a rewards counter. Spin once a day, scratch your weekly card and redeem instant coupons at the counter.</p>' +
       shoeSvg() +
-      '<div class="hero__foot">' + icon('check', 13) + ' 1 daily spin · 2 welcome cards · instant coupons</div>' +
+      '<div class="hero__foot">' + icon('check', 13) + ' 1 daily spin · 1 weekly scratch card · instant coupons</div>' +
       '</section>' +
       '<div class="card entry-card">' +
         '<div class="entry-head"><div><p class="eyebrow">Membership</p>' +
@@ -246,34 +265,15 @@
         '<div class="field" style="margin-bottom:16px"><label>Your shop</label>' +
           '<select class="input" id="shop-select">' + opts + '</select></div>' +
         '<div class="rule-list">' +
-          '<div class="rule"><span class="rule__num">1</span><span>New members get <b>2 welcome scratch cards</b>.</span></div>' +
+          '<div class="rule"><span class="rule__num">1</span><span>New members get <b>1 scratch card per week</b>.</span></div>' +
           '<div class="rule"><span class="rule__num">2</span><span>One <b>spin every day</b>, tracked by number and device.</span></div>' +
           '<div class="rule"><span class="rule__num">3</span><span>Winning coupons are issued instantly and stay valid for <b>7 days</b>.</span></div>' +
         '</div>' +
         googleBlock +
-        '<div class="btn-row" style="margin-top:18px">' +
-          '<button class="btn btn--gold" data-go="/mobile">' + icon('phone', 17) + ' Continue with mobile</button>' +
-        '</div>' +
         '<button class="link-btn" data-go="/admin/login" style="width:100%;margin-top:12px">Admin / Shop owner panel →</button>' +
       '</div>' +
       '<p class="center small muted" style="padding:4px 18px 20px">One account per mobile number. Show your coupon code at the counter.</p>';
   }
-
-  function mobile() {
-    return '<div class="screen screen--tight">' + topbar('Mobile login', '/') +
-      '<div class="card auth-card" style="margin-top:8px">' +
-        '<div class="game-card__icon" style="margin-bottom:14px">' + icon('phone', 22) + '</div>' +
-        '<h2 class="title">Mobile number</h2>' +
-        '<p class="subtitle">Enter your mobile number to continue.</p>' +
-        '<form data-form="mobile">' +
-          '<div class="field"><label>Mobile number</label><div class="input-row"><div class="prefix">+91</div>' +
-          '<input class="input" name="phone" inputmode="numeric" placeholder="98765 43210" required /></div></div>' +
-          '<button class="btn btn--gold" type="submit">Continue</button>' +
-        '</form>' +
-      '</div></div>';
-  }
-
-  /* OTP flow removed — only Google sign-in remains (config-driven). */
 
   function home() {
     var me = state.me || { user: { name: 'Member' }, spinAvailable: false, scratchLeft: 0 };
@@ -726,26 +726,6 @@
     canvas.addEventListener('touchend', up);
   }
 
-  function initOtp() {
-        inputs.forEach(function (input, i) {
-      input.addEventListener('input', function () {
-        input.value = input.value.replace(/\D/g, '').slice(0, 1);
-        if (input.value && i < inputs.length - 1) inputs[i + 1].focus();
-      });
-      input.addEventListener('keydown', function (e) {
-        if (e.key === 'Backspace' && !input.value && i > 0) inputs[i - 1].focus();
-      });
-      input.addEventListener('paste', function (e) {
-        var text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
-        if (!text) return;
-        e.preventDefault();
-        text.split('').forEach(function (ch, idx) { if (inputs[idx]) inputs[idx].value = ch; });
-        inputs[Math.min(text.length, 5)].focus();
-      });
-    });
-    if (inputs[0]) setTimeout(function () { inputs[0].focus(); }, 60);
-  }
-
   /* ---------------- render ---------------- */
   async function render() {
     var seq = ++state.renderSeq;
@@ -879,16 +859,6 @@
     e.preventDefault();
     var type = form.getAttribute('data-form');
 
-    if (type === 'mobile') {
-      var phone = '+91 ' + form.elements.phone.value.trim();
-      if (phone.replace(/\D/g, '').length < 10) { toast('Valid mobile number daalein'); return; }
-      var btn = form.querySelector('button[type=submit]');
-      if (btn) btn.disabled = true;
-      // OTP flow removed — go directly to home
-      token = ''; localStorage.removeItem(TOKEN_KEY); state.me = null;
-      toast('Sign in with Google or continue to games'); go('/home');
-    }
-
     
 
     if (type === 'admin-login') {
@@ -941,15 +911,42 @@
   }
 
   /* ---------------- boot ---------------- */
+  function showFatal(msg) {
+    var app = document.getElementById('app');
+    if (!app) return;
+    app.innerHTML = '<div style="max-width:420px;margin:15vh auto;padding:24px;text-align:center;font-family:system-ui,sans-serif">' +
+      '<h2 style="margin:0 0 8px;color:#111">Could not load ShoeLucky</h2>' +
+      '<p style="margin:0 0 16px;color:#555">' + esc(msg || 'Unexpected error') + '</p>' +
+      '<p style="margin:0 0 16px;color:#777;font-size:13px">API: ' + esc(apiBase()) + '</p>' +
+      '<button onclick="location.reload()" style="padding:10px 18px;border:0;border-radius:8px;background:#c99b2b;color:#fff;font-weight:600;cursor:pointer">Retry</button></div>';
+  }
+  window.addEventListener('error', function (e) { showFatal(e.message); });
+  window.addEventListener('unhandledrejection', function (e) {
+    showFatal(e.reason && e.reason.message ? e.reason.message : e.reason);
+  });
+
   (async function boot() {
-    try { state.config = await api('GET', '/config'); } catch (e) {}
+    var apiDown = '';
     try {
-      var d = await api('GET', '/shops');
-      state.shops = d.shops || [];
-      if (!state.shops.some(function (s) { return s.id === state.shopId; }) && state.shops.length) {
-        state.shopId = state.shops[0].id;
+      try { state.config = await api('GET', '/config'); } catch (e) { apiDown = e.message; }
+      try {
+        var d = await api('GET', '/shops');
+        state.shops = d.shops || [];
+        if (!state.shops.some(function (s) { return s.id === state.shopId; }) && state.shops.length) {
+          state.shopId = state.shops[0].id;
+        }
+      } catch (e) {}
+      try { state.rewards = (await api('GET', '/rewards/public')).rewards || []; } catch (e) {}
+      await render();
+      if (apiDown) {
+        var app = document.getElementById('app');
+        var bar = document.createElement('div');
+        bar.style.cssText = 'padding:10px 14px;background:#fff4d6;color:#7a5a00;font-size:13px;text-align:center';
+        bar.textContent = 'Backend unreachable at ' + apiBase() + ' — some features are unavailable.';
+        if (app) app.insertBefore(bar, app.firstChild);
       }
-    } catch (e) {}
-    try { state.rewards = (await api('GET', '/rewards/public')).rewards || []; } catch (e) {}
-    render();
+    } catch (e) {
+      showFatal(e && e.message);
+    }
   })();
+})();
