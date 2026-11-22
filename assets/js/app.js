@@ -92,7 +92,7 @@
     config: {}, shops: [], rewards: [], me: null, coupons: [], couponTab: 'all',
     admin: null, dash: null, adminCoupons: [], analytics: null, audit: null,
     shopId: localStorage.getItem(SHOP_KEY) || 'SL-SH-001',
-    otpPhone: '', otpCode: '', renderSeq: 0
+    renderSeq: 0
   };
 
   /* ---------------- routing ---------------- */
@@ -208,17 +208,8 @@
     });
   }
 
-  /* OTP function removed — kept for render reference only; returns empty panel. */
-  function otp() {
-    return '<div class="screen"><div class="card center"><p class="subtitle">Auth flow configured on server.</p></div></div>';
-  }
-    return '<svg class="hero__shoe\" viewBox=\"0 0 260 140\" aria-hidden=\"true\">' +
-      '<defs><linearGradient id=\"g\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#f4dfa4\"/><stop offset=\".55\" stop-color=\"#c99b2b\"/><stop offset=\"1\" stop-color=\"#8a6614\"/></linearGradient></defs>' +
-      '<path d=\"M20 104c16-2 27-9 36-23l14-22c4-6 10-8 16-5l24 11 27 16c13 7 26 9 42 10 18 2 31 8 39 19 5 7 2 12-7 12H27c-11 0-15-8-7-18Z\" fill=\"url(#g)\"/>' +
-      '<path d=\"M17 110h226c6 0 8 5 3 9-3 3-7 4-12 4H27c-9 0-14-5-14-9 0-3 1-4 4-4Z\" fill=\"#f7f5ef\"/>' +
-      '<path d=\"M88 70c8 9 12 19 13 30m-4-29c11 10 16 21 17 32m-4-30c12 10 18 21 19 33\" stroke=\"#fff4d2\" stroke-width=\"4\" stroke-linecap=\"round\" opacity=\".8\"/>' +
-      '</svg>';
-  }
+/* OTP flow completely removed — Google sign-in only. */
+// OTP handling removed from customer UI
   function confetti() {
     var layer = document.createElement('div'); layer.className = 'confetti';
     var colors = ['#c99b2b', '#f4e7c4', '#ffffff', '#9c7417'];
@@ -736,8 +727,7 @@
   }
 
   function initOtp() {
-    var inputs = Array.prototype.slice.call(document.querySelectorAll('[data-otp]'));
-    inputs.forEach(function (input, i) {
+        inputs.forEach(function (input, i) {
       input.addEventListener('input', function () {
         input.value = input.value.replace(/\D/g, '').slice(0, 1);
         if (input.value && i < inputs.length - 1) inputs[i + 1].focus();

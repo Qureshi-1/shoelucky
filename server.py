@@ -112,7 +112,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
           id TEXT PRIMARY KEY, phone TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
           email TEXT, provider TEXT NOT NULL, shop_id TEXT, device_id TEXT,
-          scratch_left INTEGER NOT NULL DEFAULT 2, created_at TEXT NOT NULL
+          scratch_left INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL
         );
         CREATE TABLE IF NOT EXISTS otps (
           id TEXT PRIMARY KEY, phone TEXT NOT NULL, code TEXT NOT NULL,
@@ -184,18 +184,18 @@ def init_db():
 
         if con.execute("SELECT COUNT(*) FROM rewards").fetchone()[0] == 0:
             rewards = [
-                ("D10", "10% OFF", "10%", 95, 1, 1),
-                ("D20", "20% OFF", "20%", 5, 1, 1),
-                ("D30", "30% OFF", "30%", 0, 1, 1),
-                ("D50", "50% OFF", "50%", 0, 0, 1),
-                ("B1G1", "Buy 1 Get 1", "B1G1", 0, 0, 1),
-                ("D70", "70% OFF", "70%", 0, 0, 1),
-                ("B1G2", "Buy 1 Get 2", "B1G2", 0, 0, 1),
-                ("D90", "90% OFF", "90%", 0, 0, 1),
+                ("D10", "10% OFF", "10%", 95, 1, 1, 1),
+                ("D20", "20% OFF", "20%", 5, 1, 1, 1),
+                ("D30", "30% OFF", "30%", 0, 1, 1, 1),
+                ("D50", "50% OFF", "50%", 0, 0, 1, 1),
+                ("B1G1", "Buy 1 Get 1", "B1G1", 0, 0, 1, 1),
+                ("D70", "70% OFF", "70%", 0, 0, 1, 1),
+                ("B1G2", "Buy 1 Get 2", "B1G2", 0, 0, 1, 1),
+                ("D90", "90% OFF", "90%", 0, 0, 1, 1),
             ]
             con.executemany(
                 "INSERT INTO rewards(id,label,short,weight,scratch_eligible,active,sort) VALUES(?,?,?,?,?,?,?)",
-                [r + (i,) for i, r in enumerate(rewards)],
+                rewards,
             )
 
         if con.execute("SELECT COUNT(*) FROM admins").fetchone()[0] == 0:

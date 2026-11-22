@@ -72,14 +72,14 @@ def init_db():
     c.execute("SELECT COUNT(*) FROM rewards")
     if c.fetchone()[0] == 0:
         rewards = [
-            ("D10", "10% OFF", "10%", 95, 1, 1),
-            ("D20", "20% OFF", "20%", 5, 1, 1),
-            ("D30", "30% OFF", "30%", 0, 1, 1),
-            ("D50", "50% OFF", "50%", 0, 0, 1),
-            ("B1G1", "Buy 1 Get 1", "B1G1", 0, 0, 1),
-            ("D70", "70% OFF", "70%", 0, 0, 1),
-            ("B1G2", "Buy 1 Get 2", "B1G2", 0, 0, 1),
-            ("D90", "90% OFF", "90%", 0, 0, 1),
+            ("D10", "10% OFF", "10%", 95, 1, 1, 1),
+            ("D20", "20% OFF", "20%", 5, 1, 1, 1),
+            ("D30", "30% OFF", "30%", 0, 1, 1, 1),
+            ("D50", "50% OFF", "50%", 0, 0, 1, 1),
+            ("B1G1", "Buy 1 Get 1", "B1G1", 0, 0, 1, 1),
+            ("D70", "70% OFF", "70%", 0, 0, 1, 1),
+            ("B1G2", "Buy 1 Get 2", "B1G2", 0, 0, 1, 1),
+            ("D90", "90% OFF", "90%", 0, 0, 1, 1),
         ]
         c.executemany(
             "INSERT INTO rewards(id,label,short,weight,scratch_eligible,active,sort) VALUES(?,?,?,?,?,?,?)",
@@ -464,5 +464,4 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     debug = SHOELUCKY_ENV != 'production'
     app.run(host='0.0.0.0', port=port, debug=debug)
-FLASK_CREATE
 print('Flask server.py created successfully')
